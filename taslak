@@ -1,0 +1,168 @@
+# Genel Hedefler
+1) HTTP ve HTTPS arasındaki farkı kavramsal değil, protokol seviyesinde açıklayabilmek.
+2) TLS handshake sürecini adım adım analiz edebilmek.
+3) X.509 sertifika zincirinin güven modelini teknik olarak açıklayabilmek.
+4) TLS 1.2 ve TLS 1.3 arasındaki yapısal farkları değerlendirebilmek.
+5) Asimetrik ve simetrik kriptografinin protokol içindeki rollerini ayırt edebilmek.
+
+***
+# Stage1
+
+**Amaç:** Şifreleme olmaksızın uygulama katmanı iletişiminin nasıl gerçekleştiğini gözlemlemek.
+
+- TCP üzerinden manuel HTTP isteği oluşturmak.
+
+- Paketleri Wireshark ile analiz etmek.
+
+- HTTP header yapısını incelemek.
+
+# Stage2
+
+**Amaç:** TLS’in bağlantı kurma aşamasındaki mesajlaşma yapısını anlamak.
+
+- OpenSSL ile TLS bağlantısı başlatmak.
+
+- TLS 1.2 ve TLS 1.3 çıktılarının karşılaştırılması.
+
+- Cipher suite seçiminin analiz edilmesi.
+
+#### İncelenecek Unsurlar:
+
+````
+ClientHello
+ServerHello
+Cipher suite negotiation
+Signature algoritması
+````
+
+# Stage3
+
+Amaç: Dijital sertifikaların güven modelini teknik düzeyde anlamak.
+
+- Sunucu sertifikasının incelenmesi.
+
+- Subject, Issuer, Validity alanlarının analizi.
+
+- Sertifika zincirinin doğrulama mantığının araştırılması.
+
+#### Kavramlar
+````
+Root CA
+Intermediate CA
+Trust store
+Certificate chain validation
+````
+
+
+# Stage4
+Amaç: TLS handshake mesajlarının ağ seviyesinde incelenmesi.
+
+#### Çalışma
+
+- Wireshark ile tls.handshake filtresi kullanımı.
+
+- ClientHello mesaj yapısının detaylı incelenmesi.
+
+- Supported groups ve signature algorithms alanlarının yorumlanması.
+
+# Stage5
+
+Amaç: Oturum anahtarının nasıl üretildiğini anlamak. TLS 1.3’te yaygın kullanılan mekanizma:
+``Elliptic Curve Diffie-Hellman``
+
+Veri şifreleme tarafında kullanılan algoritmalar:
+``AES``
+``ChaCha20-Poly1305``
+
+#### Çalışma
+
+- ECDHE mantığının teorik incelenmesi.
+
+- Asimetrik kriptografinin yalnızca key exchange için kullanıldığını gözlemlemek.
+
+- Session key kavramının anlaşılması.
+
+# Stage6
+Amaç: Modern TLS tasarımındaki güvenlik evrimini anlamak.
+
+#### İnceleme Noktaları
+
+- Round-trip sayısı
+
+- Forward secrecy zorunluluğu
+
+- RSA key exchange’in kaldırılması
+
+- Encrypted handshake bileşenleri
+
+# Stage7
+
+#### İçerik
+
+1) TLS handshake adımları (şematik anlatım)
+
+2) Sertifika zinciri güven modeli
+
+3) Session key üretim süreci
+
+4) TLS 1.2 vs TLS 1.3 karşılaştırması
+
+5) Olası yanlış yapılandırmalar ve güvenlik riskleri
+
+# I. Proje yapısı
+
+### Python kütüphaneler
+````
+cryptography
+pyca/cryptography
+hashlib
+hmac
+socket
+ssl
+scapy
+pwntools
+````
+
+# II. Temel Kavramlar
+### A. Kriptografik Primitifler
+````
+Symmetric Encryption (AES, ChaCha20)
+Authenticated Encryption (AEAD)
+Block Cipher Modes (CBC, GCM, CTR)
+Hash Functions (SHA-2, SHA-3)
+MAC (HMAC, Poly1305)
+Digital Signature (RSA, ECDSA, Ed25519)
+KDF (PBKDF2, HKDF, Argon2)
+Entropy
+Nonce
+IV
+Forward Secrecy
+Key Exchange (Diffie–Hellman, ECDH)
+````
+
+### B. Protokol ve Ağ Güvenliği
+````
+TCP/IP stack
+TLS handshake
+X.509 certificate
+Public Key Infrastructure (PKI)
+Certificate chain
+CA (Certificate Authority)
+Session key
+Cipher suite
+Man-in-the-middle (MITM)
+Replay attack
+````
+
+# III. Kullanılacak Araçlar
+````
+Wireshark
+OpenSSL
+mitmproxy
+Nmap
+Burp Suite
+````
+
+# VI. Akademik Kaynaklar
+
+düzenleyeceğim sonra
