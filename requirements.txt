@@ -1,0 +1,9 @@
+# TLS Analysis LAB - Requirements
+# This project uses only Python standard library modules:
+# - socket (built-in)
+# - ssl (built-in)
+# - sys (built-in)
+# - subprocess (built-in)
+#
+# No external dependencies are required.
+# Python 3.7+ is recommended for full TLS 1.3 support.

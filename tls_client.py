@@ -1,125 +1,140 @@
-#for TCP/IP connetion
+#for TCP/IP connection
 import socket
-#TLS/SSL şifreleme işlemleri için(for secure communication)
+#TLS/SSL encryption operations (for secure communication)
 import ssl
 
-#tüm TLS işlemlerini gerçekleştiren fonksiyon
-def tls_handshake(host="httpbin.org", port= 443):
-    print(f"\nTLS handshake başlatılıyor: {host}:{port}")
+#function that performs all TLS operations
+def tls_handshake(host="httpbin.org", port= 443, tls_version=ssl.PROTOCOL_TLS_CLIENT):
+    print(f"\nStarting TLS handshake: {host}:{port}")
 
-    print("TCP bağlantısı kuruluyor...")
-    #socket nesnesi oluşturulur ve zaman aşımı süresi 10 saniye olarak ayarlanır.
-    #socket.AF_INET IPv4 adres ailesini belirtir.
-    #socket.SOCK_STREAM ise TCP protokolünü kullanarak bir bağlantı oluşturulacağını belirtir.
+    print("Establishing TCP connection...")
+    #socket object is created and timeout is set to 10 seconds.
+    #socket.AF_INET specifies IPv4 address family.
+    #socket.SOCK_STREAM specifies using TCP protocol for connection.
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(10)  
+    tls_socket = None
 
     try:
-        #TCP bağlantısı kurulur
+        #TCP connection is established
         print(f"{host}:{port}")
-        #connect() metodu ile sunucuya bağlanır.
+        #connect to server with connect() method.
         sock.connect((host, port))
-        print("TCP bağlantısı başarılı!")
+        print("TCP connection successful!")
 
-        print("TLS context oluşturuluyor...")
-        #context: TLS ayarlarını saklayan bir değişken.
-        #ssL.SSLContext(): SSL/TLS ayarları için bir konteyner oluşturur.
-        #ssL.PROTOCOL_TLS_CLIENT: güvenli TLS bağlantıları için önerilen protokol sürümünü belirtir.
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        #CERT_REQUIRED, sunucunun sertifikasının doğrulanmasını zorunlu yapar.
+        print("Creating TLS context...")
+        #context: a variable that stores TLS settings.
+        #ssl.SSLContext(): creates a container for SSL/TLS settings.
+        #tls_version parameter specifies the TLS protocol version to use.
+        context = ssl.SSLContext(tls_version)
+        #CERT_REQUIRED makes server certificate verification mandatory.
         context.verify_mode = ssl.CERT_REQUIRED
-        #sunucu adını sertifika ile karşılaştırarak doğrulama yapar.
+        #verifies by comparing server name with certificate.
         context.check_hostname = True
-        #varsayılan sertifikaları yükler.
+        #loads default certificates.
         context.load_default_certs()
     
 
-        print("TLS handshake başlatılıyor...")
-        #wrap_socket metodu TCP bağlantısını TLS ile sarmalar.
-        #sunucuyla TLS handshake'i gerçekleştirir.
-        #şifreli TLS socketi oluşturulur.
+        print("Starting TLS handshake...")
+        #wrap_socket method wraps TCP connection with TLS.
+        #performs TLS handshake with server.
+        #encrypted TLS socket is created.
         tls_socket = context.wrap_socket(sock, server_hostname=host)
-        print("TLS handshake başarılı!")
+        print("TLS handshake successful!")
 
-        print("TLS bilgileri alınıyor... \n")
+        print("Getting TLS information... \n")
         
-        tls_version = tls_socket.version()
-        print(f"TLS Sürümü: {tls_version}")
+        negotiated_version = tls_socket.version()
+        print(f"TLS Version: {negotiated_version}")
 
-        #kullanılan şifreleme algoritması bilgilerini alır
+        #gets information about used encryption algorithm
         cipher = tls_socket.cipher()
         if cipher:
-            #[0] algoritma, [1] şifreleme modu, [2] anahtar uzunluğu
+            #[0] algorithm, [1] encryption mode, [2] key length
             print(f"Cipher: {cipher[0]}, Mode: {cipher[1]}, Key Length: {cipher[2]} bits")
 
 
-        print("Sertifika bilgileri: \n" )
-        #sunucudan sertifikayı al ve cert değişkenine kaydet
+        print("Certificate information: \n" )
+        #get certificate from server and save in cert variable
         cert = tls_socket.getpeercert()
         if cert:
-            #subject: sertifikayı alan sunucu bilgilerini içerir
-            print(f"Subject: (sunucu):")
+            #subject: contains server information receiving the certificate
+            print(f"Subject (server):")
             for key, value in cert.get('subject', []):
                 print(f"{key}: {value}")
 
-            #issuer: sertifikayı imzalayan otorite (CA) bilgilerini içerir
+            #issuer: contains information of authority (CA) signing the certificate
             print(f"\nIssuer (CA):")
             for key, value in cert.get('issuer', []):
                 print(f"{key}: {value}")
 
-        print("Sertifika zinciri: \n")
+        print("Certificate chain: \n")
         der_cert = tls_socket.getpeercert(binary_form=True)
         if der_cert:
-            #sertifika zinciri bilgilerini alır
-            print(f"Sertifika uzunluğu: {len(der_cert)} bytes")
+            #gets certificate chain information
+            print(f"Certificate length: {len(der_cert)} bytes")
 
         try:
-            #TLS bağlantısında seçilen ALPN protokolünü alır
+            #gets selected ALPN protocol in TLS connection
             alpn_protocol = tls_socket.selected_alpn_protocol()
-            #none değilse ekrana yazdırır
+            #prints if not none
             if alpn_protocol:
-                print(f"\nALPN Protokolü: {alpn_protocol}")
+                print(f"\nALPN Protocol: {alpn_protocol}")
         except AttributeError:
-            print("\nALPN desteği yok.\n")
+            print("\nNo ALPN support.\n")
         
-        print("Bağlantı kesiliyor...")
-
-
         request = f"GET /get HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n"
         tls_socket.send(request.encode('utf-8'))
         
         response = b""
         for _ in range(3):
             chunk = tls_socket.recv(4096)
-            if not chumk:
+            if not chunk:
                 break
             response += chunk
 
         response_text = response.decode('utf-8', errors='replace') #or ignore error
         if "HTTP" in response_text:
-            print("HTTP cevabı alındı!")
+            print("HTTP response received!")
             print(response_text)
 
         else:
-            print("HTTP cevabı alınamadı.")
+            print("HTTP response not received.")
 
     
     except socket.error as e:
-        print(f"Socket hatası: {e}")
+        print(f"Socket error: {e}")
 
     except ssl.SSLError as e:
-        print(f"SSL hatası: {e}")
+        print(f"SSL error: {e}")
 
     except Exception as e:
-        print(f"Genel hata: {e}")
+        print(f"General error: {e}")
 
     finally:
-        print("Bağlantı kapatılıyor...")
+        print("Closing connection...")
+        if tls_socket:
+            tls_socket.close()
         sock.close()
-        tls_socket.close()
-        print("Bağlantı kapatıldı.")
+        print("Connection closed.")
     
+
+def compare_tls_versions(host="httpbin.org", port=443):
+    print("TLS 1.2 and TLS 1.3 comparison:")
+
+    #TLS 1.2 test
+    print("\nTLS 1.2 test:")
+    tls_handshake(host, port, ssl.PROTOCOL_TLSv1_2)
+
+    #TLS 1.3 test
+    print("\nTLS 1.3 test:")
+    tls_handshake(host, port, ssl.PROTOCOL_TLSv1_3)
+
+    print("\nComparison completed.")
+
 
 if __name__ == "__main__":
     tls_handshake()
+    compare_tls_versions()
+    
 
